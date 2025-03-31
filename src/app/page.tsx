@@ -63,7 +63,7 @@ function WithOctokit({ octokit }: { octokit: Octokit }) {
 
 	return (
 		<div className="m-8">
-			<div className="grid grid-cols-[2fr_2fr_6rem_7rem_6rem] gap-0.5 bg-black border-2">
+			<div className="grid grid-cols-[2fr_2fr_6rem_8rem_6rem] gap-0.5 bg-black border-2">
 				{repos.map(repo => (
 					<>
 						<Cell
@@ -122,7 +122,7 @@ function WithOctokit({ octokit }: { octokit: Octokit }) {
 					confirm('確定要執行？不可回復喔！') &&
 					confirm('真的嗎？這是最後一次確認') &&
 					doAction(octokit, actions)
-						.then(() => alert('ok'))
+						.then(() => alert('ok，請自己重新整理頁面，有時候要稍等一下才會抓到最新狀態'))
 						.then(action.reset)
 						.catch(e => {
 							alert('error\n'+e.message)
