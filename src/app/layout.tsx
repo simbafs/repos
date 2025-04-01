@@ -19,11 +19,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${notoSansTC.variable}`}
-      >
-        {children}
-      </body>
+      <body className={`${notoSansTC.variable}`}>{children}</body>
     </html>
   );
 }
