@@ -6,28 +6,7 @@ import { useLocalStorage } from "usehooks-ts";
 import { composeMsg, doAction } from "./action";
 import { useFiltering } from "./useFiltering";
 import { Loading } from "./Loading";
-
-function Cell({
-  children,
-  action,
-}: {
-  children?: React.ReactNode;
-  action?: () => void;
-}) {
-  return (
-    <div className="border p-2 break-all" onDoubleClick={action}>
-      {children}
-    </div>
-  );
-}
-
-function Row({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="grid grid-cols-[2fr_2fr_8rem_8rem_8rem] hover:bg-blue-200">
-      {children}
-    </div>
-  );
-}
+import { Cell, Row } from "./grid";
 
 export default function Page() {
   const [octokit, setOctokit] = useState<Octokit>();
@@ -74,7 +53,7 @@ export default function Page() {
 
 function WithOctokit({ octokit }: { octokit: Octokit }) {
   const [repos, actions, action] = useRepos(octokit);
-  const [filtering, setFiltering] = useFiltering();
+  const { Filtering, filter } = useFiltering();
 
   if (repos.length == 0)
     return (
@@ -100,112 +79,85 @@ function WithOctokit({ octokit }: { octokit: Octokit }) {
   return (
     <div className="m-8">
       <div className="flex flex-col border">
-        <Row>
-          <Cell />
-          <Cell />
-          <Cell action={() => setFiltering("private")}>
-            {filtering.private == undefined
-              ? "all"
-              : filtering.private
-                ? "private"
-                : "public"}
-          </Cell>
-          <Cell action={() => setFiltering("archived")}>
-            {filtering.archived == undefined
-              ? "all"
-              : filtering.archived
-                ? "archived"
-                : "unarchived"}
-          </Cell>
-          <Cell />
-        </Row>
-
-        {repos
-          .filter((repo) => {
-            if (
-              filtering.private != undefined &&
-              repo.private != filtering.private
-            )
-              return false;
-            if (
-              filtering.archived != undefined &&
-              repo.archived != filtering.archived
-            )
-              return false;
-            return true;
-          })
-          .map((repo) => (
-            <Row key={repo.id}>
-              <Cell
-                action={() => {
-                  // TODO: a virtual layar to get modified property of repo
-                  const name = repo.full_name.split("/")[1];
-                  action.rename(repo, prompt(`Rename ${name}`, name) || name);
-                }}
-              >
-                <h2>
-                  <a href={repo.html_url} target="_blank" className="underline-offset-4 hover:underline-offset-2">{repo.full_name}</a>
-                  <br />
-                  {repo.full_name in actions.rename && (
-                    <span className="font-bold text-red-500">
-                      -&gt;{actions.rename[repo.full_name]}
-                    </span>
-                  )}
-                </h2>
-              </Cell>
-              <Cell
-                action={() => {
-                  action.setDescription(
-                    repo,
-                    prompt(`Set Description`, repo.description || "") ||
-                      repo.description ||
-                      "",
-                  );
-                }}
-              >
-                <p>
-                  {repo.description}
-                  <br />
-                  {repo.full_name in actions.description && (
-                    <span className="font-bold text-red-500">
-                      -&gt;{actions.description[repo.full_name]}
-                    </span>
-                  )}
-                </p>
-              </Cell>
-              <Cell action={() => action.toggleIsPrivate(repo)}>
-                <p>
-                  {repo.private ? "Private" : "Public"}
-                  <br />
-                  {repo.full_name in actions.private && (
-                    <span className="font-bold text-red-500">
-                      -&gt;
-                      {actions.private[repo.full_name] ? "Private" : "Public"}
-                    </span>
-                  )}
-                </p>
-              </Cell>
-              <Cell action={() => action.toggleIsArchive(repo)}>
-                <p>
-                  {repo.archived ? "Archived" : "Unarchived"}
-                  <br />
-                  {repo.full_name in actions.archived && (
-                    <span className="font-bold text-red-500">
-                      -&gt;
-                      {actions.archived[repo.full_name]
-                        ? "Archived"
-                        : "Unarchived"}
-                    </span>
-                  )}
-                </p>
-              </Cell>
-              <Cell action={() => action.remove(repo)}>
-                {repo.full_name in actions.remove && (
-                  <p className="font-bold text-red-500">Removed</p>
+        <Filtering />
+        {filter(repos).map((repo) => (
+          <Row key={repo.id}>
+            <Cell
+              action={() => {
+                // TODO: a virtual layar to get modified property of repo
+                const name = repo.full_name.split("/")[1];
+                action.rename(repo, prompt(`Rename ${name}`, name) || name);
+              }}
+            >
+              <h2>
+                <a
+                  href={repo.html_url}
+                  target="_blank"
+                  className="underline-offset-4 hover:underline-offset-2"
+                >
+                  {repo.full_name}
+                </a>
+                <br />
+                {repo.full_name in actions.rename && (
+                  <span className="font-bold text-red-500">
+                    -&gt;{actions.rename[repo.full_name]}
+                  </span>
                 )}
-              </Cell>
-            </Row>
-          ))}
+              </h2>
+            </Cell>
+            <Cell
+              action={() => {
+                action.setDescription(
+                  repo,
+                  prompt(`Set Description`, repo.description || "") ||
+                    repo.description ||
+                    "",
+                );
+              }}
+            >
+              <p>
+                {repo.description}
+                <br />
+                {repo.full_name in actions.description && (
+                  <span className="font-bold text-red-500">
+                    -&gt;{actions.description[repo.full_name]}
+                  </span>
+                )}
+              </p>
+            </Cell>
+            <Cell action={() => action.toggleIsPrivate(repo)}>
+              <p>
+                {repo.private ? "Private" : "Public"}
+                <br />
+                {repo.full_name in actions.private && (
+                  <span className="font-bold text-red-500">
+                    -&gt;
+                    {actions.private[repo.full_name] ? "Private" : "Public"}
+                  </span>
+                )}
+              </p>
+            </Cell>
+            <Cell action={() => action.toggleIsArchive(repo)}>
+              <p>
+                {repo.archived ? "Archived" : "Unarchived"}
+                <br />
+                {repo.full_name in actions.archived && (
+                  <span className="font-bold text-red-500">
+                    -&gt;
+                    {actions.archived[repo.full_name]
+                      ? "Archived"
+                      : "Unarchived"}
+                  </span>
+                )}
+              </p>
+            </Cell>
+            <Cell action={() => action.remove(repo)}>
+              {repo.full_name in actions.remove && (
+                <p className="font-bold text-red-500">Removed</p>
+              )}
+            </Cell>
+          </Row>
+        ))}
       </div>
       <div className="flex w-full gap-4">
         <button
