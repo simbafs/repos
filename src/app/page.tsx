@@ -4,8 +4,9 @@ import { Octokit } from 'octokit'
 import { useRepos } from './useRepos'
 import { useLocalStorage } from 'usehooks-ts'
 import { composeMsg, doAction } from './action'
+import { useFiltering } from './useFiltering'
 
-function Cell({ children, action }: { children: React.ReactNode; action?: () => void }) {
+function Cell({ children, action }: { children?: React.ReactNode; action?: () => void }) {
 	return (
 		<div className="bg-white p-2" onClick={action}>
 			{children}
@@ -53,6 +54,7 @@ export default function Page() {
 
 function WithOctokit({ octokit }: { octokit: Octokit }) {
 	const [repos, actions, action] = useRepos(octokit)
+	const [filtering, setFiltering] = useFiltering()
 
 	if (repos.length == 0)
 		return (
@@ -64,54 +66,73 @@ function WithOctokit({ octokit }: { octokit: Octokit }) {
 	return (
 		<div className="m-8">
 			<div className="grid grid-cols-[2fr_2fr_6rem_8rem_6rem] gap-0.5 bg-black border-2">
-				{repos.map(repo => (
-					<>
-						<Cell
-							action={() => {
-								const name = repo.nameWithOwner.split('/')[1]
-								action.rename(repo, prompt(`Rename ${name}`, name) || name)
-							}}
-						>
-							<h2>
-								{repo.nameWithOwner}
-								<br />
-								{repo.nameWithOwner in actions.rename && (
-									<span className="text-red-500 font-bold">
-										-&gt;{actions.rename[repo.nameWithOwner]}{' '}
-									</span>
+				<Cell />
+				<Cell />
+				<Cell action={() => setFiltering('private')}>
+					{filtering.private == undefined ? 'all' : filtering.private ? 'private' : 'public'}
+				</Cell>
+				<Cell action={() => setFiltering('archived')}>
+					{filtering.archived == undefined ? 'all' : filtering.archived ? 'archived' : 'unarchived'}
+				</Cell>
+				<Cell />
+
+				{repos
+					.filter(repo => {
+						if (filtering.private != undefined) return repo.isPrivate == filtering.private
+						if (filtering.archived != undefined) return repo.isArchived == filtering.archived
+						return true
+					})
+					.map(repo => (
+						<>
+							<Cell
+								action={() => {
+									const name = repo.nameWithOwner.split('/')[1]
+									action.rename(repo, prompt(`Rename ${name}`, name) || name)
+								}}
+							>
+								<h2>
+									{repo.nameWithOwner}
+									<br />
+									{repo.nameWithOwner in actions.rename && (
+										<span className="text-red-500 font-bold">
+											-&gt;{actions.rename[repo.nameWithOwner]}{' '}
+										</span>
+									)}
+								</h2>
+							</Cell>
+							<Cell>
+								<p>{repo.description}</p>
+							</Cell>
+							<Cell action={() => action.toggleIsPrivate(repo)}>
+								<p>
+									{repo.isPrivate ? 'Private' : 'Public'}
+									<br />
+									{repo.nameWithOwner in actions.isPrivate && (
+										<span className="text-red-500 font-bold">
+											-&gt;{actions.isPrivate[repo.nameWithOwner] ? 'Private' : 'Public'}{' '}
+										</span>
+									)}
+								</p>
+							</Cell>
+							<Cell action={() => action.toggleIsArchive(repo)}>
+								<p>
+									{repo.isArchived ? 'Archived' : 'Unarchived'}
+									<br />
+									{repo.nameWithOwner in actions.isArchive && (
+										<span className="text-red-500 font-bold">
+											-&gt;
+											{actions.isArchive[repo.nameWithOwner] ? 'Archived' : 'Unarchived'}{' '}
+										</span>
+									)}
+								</p>
+							</Cell>
+							<Cell action={() => action.remove(repo)}>
+								{repo.nameWithOwner in actions.remove && (
+									<p className="text-red-500 font-bold">Removed</p>
 								)}
-							</h2>
-						</Cell>
-						<Cell>
-							<p>{repo.description}</p>
-						</Cell>
-						<Cell action={() => action.toggleIsPrivate(repo)}>
-							<p>
-								{repo.isPrivate ? 'Private' : 'Public'}
-								<br />
-								{repo.nameWithOwner in actions.isPrivate && (
-									<span className="text-red-500 font-bold">
-										-&gt;{actions.isPrivate[repo.nameWithOwner] ? 'Private' : 'Public'}{' '}
-									</span>
-								)}
-							</p>
-						</Cell>
-						<Cell action={() => action.toggleIsArchive(repo)}>
-							<p>
-								{repo.isArchived ? 'Archived' : 'Unarchived'}
-								<br />
-								{repo.nameWithOwner in actions.isArchive && (
-									<span className="text-red-500 font-bold">
-										-&gt;{actions.isArchive[repo.nameWithOwner] ? 'Archived' : 'Unarchived'}{' '}
-									</span>
-								)}
-							</p>
-						</Cell>
-						<Cell action={() => action.remove(repo)}>
-							{repo.nameWithOwner in actions.remove && <p className="text-red-500 font-bold">Removed</p>}
-						</Cell>
-					</>
-				))}
+							</Cell>
+						</>
+					))}
 			</div>
 			<button
 				className="w-full border rounded-lg p-2 my-2"
@@ -125,7 +146,7 @@ function WithOctokit({ octokit }: { octokit: Octokit }) {
 						.then(() => alert('ok，請自己重新整理頁面，有時候要稍等一下才會抓到最新狀態'))
 						.then(action.reset)
 						.catch(e => {
-							alert('error\n'+e.message)
+							alert('error\n' + e.message)
 							console.error(e)
 						})
 				}
