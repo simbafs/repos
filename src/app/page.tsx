@@ -78,6 +78,7 @@ function WithOctokit({ octokit }: { octokit: Octokit }) {
 
   return (
     <div className="m-8">
+      <p>雙擊文字可以修改</p>
       <div className="flex flex-col border">
         {Filtering}
         {filter(repos).map((repo) => (

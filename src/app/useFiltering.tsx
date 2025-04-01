@@ -38,7 +38,7 @@ export function useFiltering() {
       <Cell />
       <Cell action={togglePrivate}>{privateState[isPrivate]}</Cell>
       <Cell action={toggleArchived}>{archivedState[archived]}</Cell>
-      <Cell />
+      <Cell>Remove</Cell>
     </Row>
   );
 
