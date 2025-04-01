@@ -144,7 +144,7 @@ function WithOctokit({ octokit }: { octokit: Octokit }) {
                 }}
               >
                 <h2>
-                  {repo.full_name}
+                  <a href={repo.html_url} target="_blank" className="underline-offset-4 hover:underline-offset-2">{repo.full_name}</a>
                   <br />
                   {repo.full_name in actions.rename && (
                     <span className="font-bold text-red-500">

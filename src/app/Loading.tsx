@@ -1,6 +1,6 @@
 export function Loading() {
   return (
-    <p className="loading">
+    <p className="loading text-3xl">
       Loading<span>.</span>
       <span>.</span>
       <span>.</span>
