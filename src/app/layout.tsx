@@ -8,8 +8,8 @@ const notoSansTC = Noto_Sans_TC({
 });
 
 export const metadata: Metadata = {
-  title: "Go web app",
-  description: "A web app built with Go and Next.js",
+  title: "Repos",
+  description: "Manage GitHub reposotories at one place",
 };
 
 export default function RootLayout({
