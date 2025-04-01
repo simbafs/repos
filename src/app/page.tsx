@@ -15,7 +15,15 @@ function Cell({
   action?: () => void;
 }) {
   return (
-    <div className="bg-white p-2 break-all" onDoubleClick={action}>
+    <div className="border p-2 break-all" onDoubleClick={action}>
+      {children}
+    </div>
+  );
+}
+
+function Row({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="grid grid-cols-[2fr_2fr_8rem_8rem_8rem] hover:bg-blue-200">
       {children}
     </div>
   );
@@ -28,8 +36,10 @@ export default function Page() {
   if (!octokit)
     return (
       <div className="flex min-h-screen flex-col items-center justify-center">
-        <div className="w-full max-w-md bg-gray-50 shadow-md rounded-lg p-6">
-          <p className="mb-4 text-lg">Please enter your GitHub token to authenticate:</p>
+        <div className="w-full max-w-md rounded-lg bg-gray-50 p-6 shadow-md">
+          <p className="mb-4 text-lg">
+            Please enter your GitHub token to authenticate:
+          </p>
           <input
             type="text"
             value={token}
@@ -89,24 +99,26 @@ function WithOctokit({ octokit }: { octokit: Octokit }) {
 
   return (
     <div className="m-8">
-      <div className="grid grid-cols-[2fr_2fr_6rem_8rem_6rem] gap-0.5 border-2 bg-black">
-        <Cell />
-        <Cell />
-        <Cell action={() => setFiltering("private")}>
-          {filtering.private == undefined
-            ? "all"
-            : filtering.private
-              ? "private"
-              : "public"}
-        </Cell>
-        <Cell action={() => setFiltering("archived")}>
-          {filtering.archived == undefined
-            ? "all"
-            : filtering.archived
-              ? "archived"
-              : "unarchived"}
-        </Cell>
-        <Cell />
+      <div className="flex flex-col border">
+        <Row>
+          <Cell />
+          <Cell />
+          <Cell action={() => setFiltering("private")}>
+            {filtering.private == undefined
+              ? "all"
+              : filtering.private
+                ? "private"
+                : "public"}
+          </Cell>
+          <Cell action={() => setFiltering("archived")}>
+            {filtering.archived == undefined
+              ? "all"
+              : filtering.archived
+                ? "archived"
+                : "unarchived"}
+          </Cell>
+          <Cell />
+        </Row>
 
         {repos
           .filter((repo) => {
@@ -123,7 +135,7 @@ function WithOctokit({ octokit }: { octokit: Octokit }) {
             return true;
           })
           .map((repo) => (
-            <>
+            <Row key={repo.id}>
               <Cell
                 action={() => {
                   // TODO: a virtual layar to get modified property of repo
@@ -151,7 +163,8 @@ function WithOctokit({ octokit }: { octokit: Octokit }) {
                   );
                 }}
               >
-                <p>{repo.description}
+                <p>
+                  {repo.description}
                   <br />
                   {repo.full_name in actions.description && (
                     <span className="font-bold text-red-500">
@@ -191,7 +204,7 @@ function WithOctokit({ octokit }: { octokit: Octokit }) {
                   <p className="font-bold text-red-500">Removed</p>
                 )}
               </Cell>
-            </>
+            </Row>
           ))}
       </div>
       <div className="flex w-full gap-4">
