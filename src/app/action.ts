@@ -2,8 +2,8 @@ import { Octokit } from 'octokit'
 
 export type Actions = {
 	rename: Record<string, string>
-	isArchive: Record<string, boolean>
-	isPrivate: Record<string, boolean>
+	archived: Record<string, boolean>
+	private: Record<string, boolean>
 	remove: Record<string, boolean>
 }
 
@@ -21,19 +21,17 @@ function origanize(actions: Actions) {
 		return { owner, repo } as Repo
 	})
 	const repos = [
-		...new Set(
-			[Object.keys(actions.isPrivate), Object.keys(actions.isArchive), Object.keys(actions.rename)].flat(),
-		),
+		...new Set([Object.keys(actions.private), Object.keys(actions.archived), Object.keys(actions.rename)].flat()),
 	].map(repoName => {
 		const [owner, repo] = repoName.split('/')
 		const r: Repo = { owner, repo }
 
-		if (repoName in actions.isPrivate) {
-			r.private = actions.isPrivate[repoName]
+		if (repoName in actions.private) {
+			r.private = actions.private[repoName]
 		}
 
-		if (repoName in actions.isArchive) {
-			r.archived = actions.isArchive[repoName]
+		if (repoName in actions.archived) {
+			r.archived = actions.archived[repoName]
 		}
 
 		if (repoName in actions.rename) {

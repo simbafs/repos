@@ -78,24 +78,24 @@ function WithOctokit({ octokit }: { octokit: Octokit }) {
 
 				{repos
 					.filter(repo => {
-						if (filtering.private != undefined) return repo.isPrivate == filtering.private
-						if (filtering.archived != undefined) return repo.isArchived == filtering.archived
+						if (filtering.private != undefined) return repo.private == filtering.private
+						if (filtering.archived != undefined) return repo.archived == filtering.archived
 						return true
 					})
 					.map(repo => (
 						<>
 							<Cell
 								action={() => {
-									const name = repo.nameWithOwner.split('/')[1]
+									const name = repo.full_name.split('/')[1]
 									action.rename(repo, prompt(`Rename ${name}`, name) || name)
 								}}
 							>
 								<h2>
-									{repo.nameWithOwner}
+									{repo.full_name}
 									<br />
-									{repo.nameWithOwner in actions.rename && (
+									{repo.full_name in actions.rename && (
 										<span className="text-red-500 font-bold">
-											-&gt;{actions.rename[repo.nameWithOwner]}{' '}
+											-&gt;{actions.rename[repo.full_name]}{' '}
 										</span>
 									)}
 								</h2>
@@ -105,31 +105,29 @@ function WithOctokit({ octokit }: { octokit: Octokit }) {
 							</Cell>
 							<Cell action={() => action.toggleIsPrivate(repo)}>
 								<p>
-									{repo.isPrivate ? 'Private' : 'Public'}
+									{repo.private ? 'Private' : 'Public'}
 									<br />
-									{repo.nameWithOwner in actions.isPrivate && (
+									{repo.full_name in actions.private && (
 										<span className="text-red-500 font-bold">
-											-&gt;{actions.isPrivate[repo.nameWithOwner] ? 'Private' : 'Public'}{' '}
+											-&gt;{actions.private[repo.full_name] ? 'Private' : 'Public'}{' '}
 										</span>
 									)}
 								</p>
 							</Cell>
 							<Cell action={() => action.toggleIsArchive(repo)}>
 								<p>
-									{repo.isArchived ? 'Archived' : 'Unarchived'}
+									{repo.archived ? 'Archived' : 'Unarchived'}
 									<br />
-									{repo.nameWithOwner in actions.isArchive && (
+									{repo.full_name in actions.archived && (
 										<span className="text-red-500 font-bold">
 											-&gt;
-											{actions.isArchive[repo.nameWithOwner] ? 'Archived' : 'Unarchived'}{' '}
+											{actions.archived[repo.full_name] ? 'Archived' : 'Unarchived'}{' '}
 										</span>
 									)}
 								</p>
 							</Cell>
 							<Cell action={() => action.remove(repo)}>
-								{repo.nameWithOwner in actions.remove && (
-									<p className="text-red-500 font-bold">Removed</p>
-								)}
+								{repo.full_name in actions.remove && <p className="text-red-500 font-bold">Removed</p>}
 							</Cell>
 						</>
 					))}

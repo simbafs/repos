@@ -1,18 +1,19 @@
 import { Octokit } from 'octokit'
 import { useEffect, useReducer, useState } from 'react'
 import { Actions } from './action'
+import { Endpoints } from '@octokit/types'
 
-export type Repo = {
-	nameWithOwner: string
-	description: string
-	isArchived: boolean
-	isPrivate: boolean
-}
+// export type Repo = {
+// 	full_name: string
+// 	description: string
+// 	archivedd: boolean
+// 	private: boolean
+// }
 
 export type Action =
 	| {
 			repo: string
-			action: 'isArchive' | 'isPrivate' | 'remove'
+			action: 'archived' | 'private' | 'remove'
 	  }
 	| {
 			repo: string
@@ -23,24 +24,12 @@ export type Action =
 			action: 'reset'
 	  }
 
-async function getAllRepos(octokit: Octokit) {
-	return octokit
-		.paginate(`GET /user/repos?sort=created`, {
-			'X-GitHub-Api-Version': '2022-11-28',
-		})
-		.then(res => {
-			console.log(res)
-			return res.map(
-				// eslint-disable-next-line @typescript-eslint/no-explicit-any
-				(repo: any) =>
-					({
-						nameWithOwner: repo.full_name,
-						description: repo.description || '',
-						isArchived: repo.archived,
-						isPrivate: repo.private,
-					}) as Repo,
-			)
-		})
+export type Repo = Endpoints['GET /user/repos']['response']['data'][0]
+
+async function getAllRepos(octokit: Octokit): Promise<Repo[]> {
+	return octokit.paginate(`GET /user/repos?sort=created`, {
+		'X-GitHub-Api-Version': '2022-11-28',
+	})
 }
 
 export function useRepos(octokit: Octokit) {
@@ -50,15 +39,15 @@ export function useRepos(octokit: Octokit) {
 		getAllRepos(octokit).then(setRepos).catch(console.error)
 	}, [octokit])
 
-	const getRepo = (name: string) => repos.find(r => r.nameWithOwner == name)
+	const getRepo = (name: string) => repos.find(r => r.full_name === name)
 
 	const [actions, updateActions] = useReducer(
 		(actions: Actions, action: Action) => {
 			if (action.action == 'reset') {
 				return {
 					rename: {},
-					isArchive: {},
-					isPrivate: {},
+					archived: {},
+					private: {},
 					remove: {},
 				}
 			}
@@ -69,17 +58,17 @@ export function useRepos(octokit: Octokit) {
 			switch (action.action) {
 				case 'rename':
 					s.rename[action.repo] = action.name
-					if (action.name == repo?.nameWithOwner) delete s.rename[action.repo]
+					if (action.name == repo?.full_name) delete s.rename[action.repo]
 					break
-				case 'isPrivate':
-					const isPrivate = action.repo in s.isPrivate ? !s.isPrivate[action.repo] : !repo?.isPrivate
-					s.isPrivate[action.repo] = isPrivate
-					if (isPrivate == repo?.isPrivate) delete s.isPrivate[action.repo]
+				case 'private':
+					const isPrivate = action.repo in s.private ? !s.private[action.repo] : !repo?.private
+					s.private[action.repo] = isPrivate
+					if (isPrivate == repo?.private) delete s.private[action.repo]
 					break
-				case 'isArchive':
-					const isArchive = action.repo in s.isArchive ? !s.isArchive[action.repo] : !repo?.isArchived
-					s.isArchive[action.repo] = isArchive
-					if (isArchive == repo?.isArchived) delete s.isArchive[action.repo]
+				case 'archived':
+					const archived = action.repo in s.archived ? !s.archived[action.repo] : !repo?.archived
+					s.archived[action.repo] = archived
+					if (archived == repo?.archived) delete s.archived[action.repo]
 					break
 				case 'remove':
 					const remove = action.repo in s.remove ? !s.remove[action.repo] : true
@@ -96,30 +85,30 @@ export function useRepos(octokit: Octokit) {
 		},
 		{
 			rename: {},
-			isArchive: {},
-			isPrivate: {},
+			archived: {},
+			private: {},
 			remove: {},
 		},
 	)
 
 	const toggleIsArchive = (repo: Repo) => {
 		updateActions({
-			repo: repo.nameWithOwner,
-			action: 'isArchive',
+			repo: repo.full_name,
+			action: 'archived',
 		})
 	}
 
 	const toggleIsPrivate = (repo: Repo) => {
 		updateActions({
-			repo: repo.nameWithOwner,
-			action: 'isPrivate',
+			repo: repo.full_name,
+			action: 'private',
 		})
 	}
 
 	const rename = (repo: Repo, name: string) => {
-		const owner = repo.nameWithOwner.split('/')[0]
+		const owner = repo.full_name.split('/')[0]
 		updateActions({
-			repo: repo.nameWithOwner,
+			repo: repo.full_name,
 			name: `${owner}/${name}`,
 			action: 'rename',
 		})
@@ -127,7 +116,7 @@ export function useRepos(octokit: Octokit) {
 
 	const remove = (repo: Repo) => {
 		updateActions({
-			repo: repo.nameWithOwner,
+			repo: repo.full_name,
 			action: 'remove',
 		})
 	}
