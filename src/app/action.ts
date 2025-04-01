@@ -5,12 +5,14 @@ export type Actions = {
   archived: Record<string, boolean>;
   private: Record<string, boolean>;
   remove: Record<string, boolean>;
+  description: Record<string, string>;
 };
 
 type Repo = {
   owner: string;
   repo: string;
   name?: string;
+  description?: string;
   private?: boolean;
   archived?: boolean;
 };
@@ -26,6 +28,7 @@ function origanize(actions: Actions) {
         Object.keys(actions.private),
         Object.keys(actions.archived),
         Object.keys(actions.rename),
+        Object.keys(actions.description),
       ].flat(),
     ),
   ].map((repoName) => {
@@ -42,6 +45,10 @@ function origanize(actions: Actions) {
 
     if (repoName in actions.rename) {
       r.name = actions.rename[repoName];
+    }
+
+    if (repoName in actions.description) {
+      r.description = actions.description[repoName];
     }
 
     return r;
@@ -64,6 +71,10 @@ export function composeMsg(actions: Actions) {
     if (repo.private != undefined) {
       if (repo.private) action.push("設為私人");
       else action.push("公開");
+    }
+    if (repo.description != undefined) {
+      if (repo.description) action.push("更改描述");
+      else action.push("清除描述");
     }
     if (repo.name) action.push(`改名為 ${repo.name}`);
 

@@ -14,7 +14,7 @@ function Cell({
   action?: () => void;
 }) {
   return (
-    <div className="bg-white p-2" onClick={action}>
+    <div className="bg-white p-2 break-all" onClick={action}>
       {children}
     </div>
   );
@@ -122,6 +122,7 @@ function WithOctokit({ octokit }: { octokit: Octokit }) {
             <>
               <Cell
                 action={() => {
+                  // TODO: a virtual layar to get modified property of repo
                   const name = repo.full_name.split("/")[1];
                   action.rename(repo, prompt(`Rename ${name}`, name) || name);
                 }}
@@ -131,13 +132,29 @@ function WithOctokit({ octokit }: { octokit: Octokit }) {
                   <br />
                   {repo.full_name in actions.rename && (
                     <span className="font-bold text-red-500">
-                      -&gt;{actions.rename[repo.full_name]}{" "}
+                      -&gt;{actions.rename[repo.full_name]}
                     </span>
                   )}
                 </h2>
               </Cell>
-              <Cell>
-                <p>{repo.description}</p>
+              <Cell
+                action={() => {
+                  action.setDescription(
+                    repo,
+                    prompt(`Set Description`, repo.description || "") ||
+                      repo.description ||
+                      "",
+                  );
+                }}
+              >
+                <p>{repo.description}
+                  <br />
+                  {repo.full_name in actions.description && (
+                    <span className="font-bold text-red-500">
+                      -&gt;{actions.description[repo.full_name]}
+                    </span>
+                  )}
+                </p>
               </Cell>
               <Cell action={() => action.toggleIsPrivate(repo)}>
                 <p>
@@ -146,9 +163,7 @@ function WithOctokit({ octokit }: { octokit: Octokit }) {
                   {repo.full_name in actions.private && (
                     <span className="font-bold text-red-500">
                       -&gt;
-                      {actions.private[repo.full_name]
-                        ? "Private"
-                        : "Public"}{" "}
+                      {actions.private[repo.full_name] ? "Private" : "Public"}
                     </span>
                   )}
                 </p>
@@ -162,7 +177,7 @@ function WithOctokit({ octokit }: { octokit: Octokit }) {
                       -&gt;
                       {actions.archived[repo.full_name]
                         ? "Archived"
-                        : "Unarchived"}{" "}
+                        : "Unarchived"}
                     </span>
                   )}
                 </p>

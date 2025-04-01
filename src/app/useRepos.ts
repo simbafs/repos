@@ -21,6 +21,11 @@ export type Action =
       action: "rename";
     }
   | {
+      repo: string;
+      action: "description";
+      description: string;
+    }
+  | {
       action: "reset";
     };
 
@@ -49,6 +54,7 @@ export function useRepos(octokit: Octokit) {
           archived: {},
           private: {},
           remove: {},
+          description: {},
         };
       }
 
@@ -82,6 +88,12 @@ export function useRepos(octokit: Octokit) {
             delete s.remove[action.repo];
           }
           break;
+        case "description":
+          s.description[action.repo] = action.description;
+          if (action.description == repo?.description) {
+            delete s.description[action.repo];
+          }
+          break;
         default:
           console.error("unknown action:", action);
       }
@@ -93,6 +105,7 @@ export function useRepos(octokit: Octokit) {
       archived: {},
       private: {},
       remove: {},
+      description: {},
     },
   );
 
@@ -130,6 +143,14 @@ export function useRepos(octokit: Octokit) {
     updateActions({ action: "reset" });
   };
 
+  const setDescription = (repo: Repo, description: string) => {
+    updateActions({
+      repo: repo.full_name,
+      action: "description",
+      description,
+    });
+  };
+
   return [
     repos,
     actions,
@@ -138,6 +159,7 @@ export function useRepos(octokit: Octokit) {
       toggleIsPrivate,
       rename,
       remove,
+      setDescription,
       reset,
     },
   ] as const;
