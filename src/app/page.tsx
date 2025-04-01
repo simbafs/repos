@@ -78,8 +78,8 @@ function WithOctokit({ octokit }: { octokit: Octokit }) {
 
 				{repos
 					.filter(repo => {
-						if (filtering.private != undefined) return repo.private == filtering.private
-						if (filtering.archived != undefined) return repo.archived == filtering.archived
+						if (filtering.private != undefined && repo.private != filtering.private) return false
+						if (filtering.archived != undefined && repo.archived != filtering.archived) return false
 						return true
 					})
 					.map(repo => (
