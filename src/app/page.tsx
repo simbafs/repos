@@ -5,6 +5,7 @@ import { useRepos } from "./useRepos";
 import { useLocalStorage } from "usehooks-ts";
 import { composeMsg, doAction } from "./action";
 import { useFiltering } from "./useFiltering";
+import { Loading } from "./Loading";
 
 function Cell({
   children,
@@ -14,7 +15,7 @@ function Cell({
   action?: () => void;
 }) {
   return (
-    <div className="bg-white p-2 break-all" onClick={action}>
+    <div className="bg-white p-2 break-all" onDoubleClick={action}>
       {children}
     </div>
   );
@@ -27,31 +28,34 @@ export default function Page() {
   if (!octokit)
     return (
       <div className="flex min-h-screen flex-col items-center justify-center">
-        <input
-          type="text"
-          value={token}
-          onChange={(e) => setToken(e.target.value)}
-          placeholder="Enter your GitHub token"
-          className="my-2 rounded-lg border p-2"
-        />
-        <button
-          className="my-2 rounded-lg border p-2"
-          type="button"
-          onClick={() => {
-            try {
-              const octokit = new Octokit({ auth: token });
-              console.log(octokit);
-              octokit.auth();
-              octokit.rest.users.getAuthenticated().then(() => {
-                setOctokit(octokit);
-              });
-            } catch {
-              alert("Invalid token");
-            }
-          }}
-        >
-          Auth
-        </button>
+        <div className="w-full max-w-md bg-gray-50 shadow-md rounded-lg p-6">
+          <p className="mb-4 text-lg">Please enter your GitHub token to authenticate:</p>
+          <input
+            type="text"
+            value={token}
+            onChange={(e) => setToken(e.target.value)}
+            placeholder="Enter your GitHub token"
+            className="my-2 w-full rounded-lg border p-2"
+          />
+          <button
+            className="my-2 w-full rounded-lg border p-2"
+            type="button"
+            onClick={() => {
+              try {
+                const octokit = new Octokit({ auth: token });
+                console.log(octokit);
+                octokit.auth();
+                octokit.rest.users.getAuthenticated().then(() => {
+                  setOctokit(octokit);
+                });
+              } catch {
+                alert("Invalid token");
+              }
+            }}
+          >
+            Auth
+          </button>
+        </div>
       </div>
     );
 
@@ -65,7 +69,7 @@ function WithOctokit({ octokit }: { octokit: Octokit }) {
   if (repos.length == 0)
     return (
       <div className="flex min-h-screen flex-col items-center justify-center">
-        <h1 className="text-2xl">Loading...</h1>
+        <Loading />
       </div>
     );
 

@@ -3,13 +3,6 @@ import { useEffect, useReducer, useState } from "react";
 import { Actions } from "./action";
 import { Endpoints } from "@octokit/types";
 
-// export type Repo = {
-// 	full_name: string
-// 	description: string
-// 	archivedd: boolean
-// 	private: boolean
-// }
-
 export type Action =
   | {
       repo: string;
