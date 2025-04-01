@@ -79,7 +79,7 @@ function WithOctokit({ octokit }: { octokit: Octokit }) {
   return (
     <div className="m-8">
       <div className="flex flex-col border">
-        <Filtering />
+        {Filtering}
         {filter(repos).map((repo) => (
           <Row key={repo.id}>
             <Cell
