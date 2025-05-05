@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Noto_Sans_TC } from "next/font/google";
 import "./globals.css";
+import { Suspense } from "react";
 
 const notoSansTC = Noto_Sans_TC({
   subsets: ["latin"],
@@ -19,7 +20,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${notoSansTC.variable}`}>{children}</body>
+      <body className={`${notoSansTC.variable}`}>
+        <Suspense>{children}</Suspense>
+      </body>
     </html>
   );
 }
