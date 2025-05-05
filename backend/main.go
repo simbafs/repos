@@ -2,8 +2,10 @@ package main
 
 import (
 	"embed"
-	"fmt"
+	"log"
 	"net/http"
+
+	"backend/config"
 
 	"github.com/simbafs/kama"
 )
@@ -11,23 +13,20 @@ import (
 //go:embed all:static/*
 var static embed.FS
 
-func authGithubApp() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "Hello from the authGithubApp handler!")
-	}
-}
-
-func run() error {
+func run(conf *config.Config) error {
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("/auth/github", authGithubApp())
+	mux.HandleFunc("POST /auth/github", GitHubOAuthCallbackHandler(conf.ClientID, conf.ClientSecret))
 	mux.HandleFunc("/", kama.New(static).Go())
 
 	return http.ListenAndServe(":3000", mux)
 }
 
 func main() {
-	if err := run(); err != nil {
+	log.SetFlags(log.Lshortfile)
+	conf := config.NewFromEnv()
+
+	if err := run(conf); err != nil {
 		panic(err)
 	}
 }

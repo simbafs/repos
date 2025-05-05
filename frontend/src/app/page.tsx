@@ -1,52 +1,58 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Octokit } from "octokit";
 import { useRepos } from "./useRepos";
-import { useLocalStorage } from "usehooks-ts";
 import { composeMsg, doAction } from "./action";
 import { useFiltering } from "./useFiltering";
 import { Loading } from "./Loading";
 import { Cell, Row } from "./grid";
+import { useSearchParams } from "next/navigation";
+
+const clientID = "Ov23liTnLPEPqqDWdFcE";
 
 export default function Page() {
-  const [octokit, setOctokit] = useState<Octokit>();
-  const [token, setToken] = useLocalStorage("token", "");
+  const [octokit, setOctokit] = useState<Octokit | null>(null);
+  const searchParams = useSearchParams();
 
-  if (!octokit)
+  useEffect(() => {
+    const code = searchParams.get("code");
+    if (code) {
+      fetch("/auth/github", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code }),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          const octokit = new Octokit({ auth: data.access_token });
+          setOctokit(octokit);
+        })
+        .then(() => {
+          if (!window) return;
+          window.history.replaceState(null, "", "/");
+        })
+        .catch((e) => {
+          alert("登入失敗，錯誤訊息在 Console");
+          console.error(e);
+        });
+    }
+  }, [searchParams]);
+
+  if (!octokit) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center">
-        <div className="w-full max-w-md rounded-lg bg-gray-50 p-6 shadow-md">
-          <p className="mb-4 text-lg">
-            Please enter your GitHub token to authenticate:
-          </p>
-          <input
-            type="text"
-            value={token}
-            onChange={(e) => setToken(e.target.value)}
-            placeholder="Enter your GitHub token"
-            className="my-2 w-full rounded-lg border p-2"
-          />
-          <button
-            className="my-2 w-full rounded-lg border p-2"
-            type="button"
-            onClick={() => {
-              try {
-                const octokit = new Octokit({ auth: token });
-                console.log(octokit);
-                octokit.auth();
-                octokit.rest.users.getAuthenticated().then(() => {
-                  setOctokit(octokit);
-                });
-              } catch {
-                alert("Invalid token");
-              }
-            }}
+        <div className="w-full max-w-md rounded-lg bg-gray-50 p-6 text-center shadow-md">
+          <p className="mb-4 text-lg">請使用 GitHub 登入：</p>
+          <a
+            href={`https://github.com/login/oauth/authorize?client_id=${clientID}&scope=repo+delete_repo`}
+            className="inline-block rounded bg-black px-4 py-2 text-white"
           >
-            Auth
-          </button>
+            使用 GitHub 登入
+          </a>
         </div>
       </div>
     );
+  }
 
   return <WithOctokit octokit={octokit} />;
 }
