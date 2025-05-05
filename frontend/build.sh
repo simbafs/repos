@@ -1,6 +1,6 @@
 #!/bin/bash
 
 npm run build
-rm ../backend/static -rf
-mkdir ../backend/static
+rm -rf ../backend/static 
+mkdir -p ../backend/static 
 cp -r out/* ../backend/static
