@@ -62,7 +62,7 @@ buildDist:
 	docker build --output out .
 
 buildFrontend:
-	cd ./frontend/ && npm run build
+	cd ./frontend/ && bash build.sh
 
 buildBackend:
 	rm -rf ./backend/static/
