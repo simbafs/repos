@@ -3,4 +3,4 @@
 npm run build
 rm ../backend/static -rf
 mkdir ../backend/static
-cp -r build/* ../backend/static
+cp -r out/* ../backend/static
