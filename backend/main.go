@@ -17,7 +17,7 @@ func run(conf *config.Config) error {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("POST /auth/github", GitHubOAuthCallbackHandler(conf.ClientID, conf.ClientSecret))
-	mux.HandleFunc("/", kama.New(static).Go())
+	mux.HandleFunc("/", kama.New(static, kama.WithTree(conf.Tree)).Go())
 
 	return http.ListenAndServe(":3000", mux)
 }
